@@ -24,14 +24,19 @@ locale: en
 tables:
   users:
     rows: 5000
-    # Per-column overrides. Use `generator` to force a built-in (supplying
-    # an unknown name surfaces the full known list in the preflight error)
-    # or `value` to pin a literal. Set exactly one of the two per column.
+    # Per-column overrides.
+    # Use `generator` to force a built-in (supplying an unknown name surfaces
+    # the full known list in the preflight error), or
+    # `value` to pin a literal, or
+    # `exclude` to skip the column.
+    # Set exactly one of the two per column.
     columns:
       email:
         generator: Email
       bio:
         value: dogfood seed row
+      deleted_at:
+        exclude: true
   orders:
     rows: 10000
   comments:

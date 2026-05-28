@@ -32,6 +32,7 @@ type TableConfig struct {
 type ColumnConfig struct {
 	Generator string `yaml:"generator,omitempty"`
 	Value     any    `yaml:"value,omitempty"`
+	Exclude   bool   `yaml:"exclude,omitempty"`
 }
 
 // PolymorphicConfig declares a Rails-style polymorphic association: TypeColumn
@@ -109,6 +110,9 @@ func Parse(data []byte) (Config, error) {
 }
 
 func validateColumn(table, col string, cc ColumnConfig) error {
+	if cc.Exclude {
+		return nil
+	}
 	hasGen := cc.Generator != ""
 	hasVal := cc.Value != nil
 	switch {

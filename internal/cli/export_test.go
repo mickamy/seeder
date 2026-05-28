@@ -7,6 +7,7 @@ var (
 	SplitTrim                = splitTrim
 	IncludeTables            = includeTables
 	ExcludeTables            = excludeTables
+	ExcludeColumns           = excludeColumns
 	OrphanFKs                = orphanFKs
 	ValueFlags               = valueFlags
 	ApplyTableFilters        = applyTableFilters

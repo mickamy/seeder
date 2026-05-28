@@ -128,6 +128,51 @@ func TestIncludeTables(t *testing.T) {
 	}
 }
 
+func TestExcludeColumns(t *testing.T) {
+	t.Parallel()
+
+	usersColumns := []introspect.Column{
+		{
+			Name: "user_col_1",
+		},
+		{
+			Name: "user_col_2",
+		},
+	}
+	ordersColumns := []introspect.Column{
+		{
+			Name: "order_col_1",
+		},
+		{
+			Name: "order_col_2",
+		},
+	}
+	tables := []introspect.Table{{Name: "users", Columns: usersColumns}, {Name: "orders", Columns: ordersColumns}}
+	schema := introspect.Schema{Tables: tables}
+	cfg := config.Config{
+		Tables: map[string]config.TableConfig{
+			"users": {Columns: map[string]config.ColumnConfig{
+				"user_col_2": {
+					Exclude: true,
+				},
+			}},
+		},
+	}
+
+	got := cli.ExcludeColumns(schema, cfg)
+	for _, table := range got.Tables {
+		if table.Name == "users" {
+			if len(table.Columns) != 1 {
+				t.Errorf("got too many columns for 'users'-table, got: %d, want: 1", len(table.Columns))
+			} else if table.Columns[0].Name != "user_col_1" {
+				t.Errorf(`got wrong column, got: %s, want: user_col_1`, table.Columns[0].Name)
+			}
+		} else if table.Name == "orders" && len(table.Columns) != 2 {
+			t.Errorf("got too many columns for 'orders'-table, got: %d, want: 2", len(table.Columns))
+		}
+	}
+}
+
 func TestExcludeTables(t *testing.T) {
 	t.Parallel()
 

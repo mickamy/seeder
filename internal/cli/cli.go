@@ -130,6 +130,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return exit.Usage
 	}
 
+	schema = excludeColumns(schema, cfg)
+
 	if len(schema.Tables) == 0 {
 		fmt.Fprintln(stderr, "seeder: no tables to seed")
 
@@ -235,6 +237,33 @@ func validateFlags(
 	}
 
 	return ""
+}
+
+func excludeColumns(schema introspect.Schema, cfg config.Config) introspect.Schema {
+	for i, table := range schema.Tables {
+		if len(table.Columns) == 0 {
+			continue
+		}
+		unwanted := make(map[string]bool)
+		if tableCfg, ok := cfg.Tables[table.Name]; ok {
+			for name, utc := range tableCfg.Columns {
+				if utc.Exclude {
+					unwanted[name] = true
+				}
+			}
+		}
+		if len(unwanted) == 0 {
+			continue
+		}
+		var keep []introspect.Column
+		for _, c := range table.Columns {
+			if ok := unwanted[c.Name]; !ok {
+				keep = append(keep, c)
+			}
+		}
+		schema.Tables[i].Columns = keep
+	}
+	return schema
 }
 
 func applyTableFilters(
