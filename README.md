@@ -240,7 +240,7 @@ Per-column overrides under `tables.<name>.columns.<col>` bypass inference for a 
   switch on `--locale`; use `value:` for a fixed string when you need a specific locale.
 - `value: <literal>` — pin the column to a fixed yaml value. Only scalars (string, number, bool) are accepted; arrays
   and maps are rejected with a `value must be a scalar` error.
-- `exclude: <boolean>` — exclude the column to be populated with a value.
+- `exclude: <boolean>` — exclude the column to be populated with a value. Can't be a primary key nor a foreign key.
 
 Foreign-key columns are not overridable: yaml entries for them are ignored and the FK pool is used instead, so children
 still point at real parents.

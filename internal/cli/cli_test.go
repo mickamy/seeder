@@ -138,6 +138,9 @@ func TestExcludeColumns(t *testing.T) {
 		{
 			Name: "user_col_2",
 		},
+		{
+			Name: "user_pk",
+		},
 	}
 	ordersColumns := []introspect.Column{
 		{
@@ -146,13 +149,32 @@ func TestExcludeColumns(t *testing.T) {
 		{
 			Name: "order_col_2",
 		},
+		{
+			Name: "order_fk",
+		},
 	}
-	tables := []introspect.Table{{Name: "users", Columns: usersColumns}, {Name: "orders", Columns: ordersColumns}}
+	ordersFk := []introspect.ForeignKey{
+		{
+			Columns: []string{"order_fk"},
+		},
+	}
+	tables := []introspect.Table{
+		{Name: "users", Columns: usersColumns, PrimaryKey: []string{"user_pk"}},
+		{Name: "orders", Columns: ordersColumns, ForeignKeys: ordersFk},
+	}
 	schema := introspect.Schema{Tables: tables}
 	cfg := config.Config{
 		Tables: map[string]config.TableConfig{
 			"users": {Columns: map[string]config.ColumnConfig{
 				"user_col_2": {
+					Exclude: true,
+				},
+				"user_pk": {
+					Exclude: true,
+				},
+			}},
+			"orders": {Columns: map[string]config.ColumnConfig{
+				"order_fk": {
 					Exclude: true,
 				},
 			}},
@@ -162,13 +184,15 @@ func TestExcludeColumns(t *testing.T) {
 	got := cli.ExcludeColumns(schema, cfg)
 	for _, table := range got.Tables {
 		if table.Name == "users" {
-			if len(table.Columns) != 1 {
-				t.Errorf("got too many columns for 'users'-table, got: %d, want: 1", len(table.Columns))
-			} else if table.Columns[0].Name != "user_col_1" {
-				t.Errorf(`got wrong column, got: %s, want: user_col_1`, table.Columns[0].Name)
+			if len(table.Columns) != 2 {
+				t.Errorf("got wrong amount of columns for 'users'-table, got: %d, want: 2", len(table.Columns))
 			}
-		} else if table.Name == "orders" && len(table.Columns) != 2 {
-			t.Errorf("got too many columns for 'orders'-table, got: %d, want: 2", len(table.Columns))
+			columnNames := []string{table.Columns[0].Name, table.Columns[1].Name}
+			if slices.Contains(columnNames, "user_col_2") {
+				t.Errorf(`got wrong columns, got: %+v, want: [user_col_1, user_pk]`, columnNames)
+			}
+		} else if table.Name == "orders" && len(table.Columns) != 3 {
+			t.Errorf("got wrong amount of columns for 'orders'-table, got: %d, want: 3", len(table.Columns))
 		}
 	}
 }

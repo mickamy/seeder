@@ -244,10 +244,19 @@ func excludeColumns(schema introspect.Schema, cfg config.Config) introspect.Sche
 		if len(table.Columns) == 0 {
 			continue
 		}
+		protected := make(map[string]bool)
+		for _, pk := range table.PrimaryKey {
+			protected[pk] = true
+		}
+		for _, fk := range table.ForeignKeys {
+			for _, col := range fk.Columns {
+				protected[col] = true
+			}
+		}
 		unwanted := make(map[string]bool)
 		if tableCfg, ok := cfg.Tables[table.Name]; ok {
 			for name, utc := range tableCfg.Columns {
-				if utc.Exclude {
+				if utc.Exclude && !protected[name] {
 					unwanted[name] = true
 				}
 			}
