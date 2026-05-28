@@ -110,11 +110,14 @@ func Parse(data []byte) (Config, error) {
 }
 
 func validateColumn(table, col string, cc ColumnConfig) error {
-	if cc.Exclude {
-		return nil
-	}
 	hasGen := cc.Generator != ""
 	hasVal := cc.Value != nil
+	if cc.Exclude {
+		if hasGen || hasVal {
+			return fmt.Errorf("seeder.yaml: tables.%s.columns.%s: cannot set 'generator' or 'value' when 'exclude' is true", table, col)
+		}
+		return nil
+	}
 	switch {
 	case hasGen && hasVal:
 		return fmt.Errorf("seeder.yaml: tables.%s.columns.%s: cannot set both `generator` and `value`", table, col)
